@@ -58,6 +58,9 @@ class WaypointUpdater(object):
 	def get_closest_waypoint_id(self):
 		x = self.pose.pose.position.x
 		y = self.pose.pose.position.y
+		
+		if (self.waypoint_tree == None):
+			return 0
 		closest_idx = self.waypoint_tree.query([x,y],1)[1]
 
 		#determine whether closest point is ahead of ego vehicle or not
