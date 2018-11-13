@@ -49,19 +49,21 @@ class WaypointUpdater(object):
 	def loop(self):
 		rate = rospy.Rate(50)  # as per classes & Q&A session [30 - 50] range
 		while not rospy.is_shutdown():
-			if self.pose and self.base_waypoints:
+			if self.pose and self.base_waypoints and self.waypoint_tree:
 				# retrive closest way_point ahead
 				closest_wpt_idx = self.get_closest_waypoint_id()
 				self.publish_waypoints(closest_wpt_idx)
-		rate.sleep()
+			rate.sleep()
 	
 	def get_closest_waypoint_id(self):
 		x = self.pose.pose.position.x
 		y = self.pose.pose.position.y
 		
-		if (self.waypoint_tree == None):
-			return 0
-		closest_idx = self.waypoint_tree.query([x,y],1)[1]
+		closest_idx = self.waypoint_tree.query([x,y], 1)[1]
+		_,  all_i = self.waypoint_tree.query([(x, y)])
+		exp_close_index = all_i[0]
+		
+	
 
 		#determine whether closest point is ahead of ego vehicle or not
 		closest_pt = self.waypoints_2d[closest_idx]
@@ -72,21 +74,30 @@ class WaypointUpdater(object):
 		prev_v	= np.array(prev_pt)
 		pos_v = np.array([x, y])
 
+		rospy.loginfo("WU: closest_idx {}, exp {}, position {} ".format(closest_idx,  exp_close_index, pos_v))
 		dot_product = np.dot (closest_v-prev_v, pos_v-closest_v)
+		
+		
 		if (dot_product > 0.): # the closest point was behind the ego vehicle; take the next one ahead.
 			closest_idx = (closest_idx + 1) % len(self.waypoints_2d)  
-		
+		rospy.loginfo("WaypointUpdater: closest_idx {} ".format(closest_idx))
 		return (closest_idx)
 
 	def publish_waypoints (self, closest_idx):
 		lane = Lane()
 		lane.header = self.base_waypoints.header
 		lane.waypoints = self.base_waypoints.waypoints[closest_idx:closest_idx+LOOKAHEAD_WPS]
+		
+		rospy.loginfo("WU: closest index {}, ofinal wpt len {},  base wpt len {} ".format(closest_idx, len(lane.waypoints),  len(self.base_waypoints.waypoints)))
 		self.final_waypoints_pub.publish(lane)
 
 	def pose_cb(self, msg):
         # TODO: Implement
 		self.pose = msg
+		#if self.pose and self.base_waypoints and self.waypoint_tree:
+			# retrive closest way_point ahead
+			#closest_wpt_idx = self.get_closest_waypoint_id()
+			#self.publish_waypoints(closest_wpt_idx)
 
 	def waypoints_cb(self, waypoints):
         # TODO: Implement

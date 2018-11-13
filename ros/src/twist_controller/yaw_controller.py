@@ -15,7 +15,7 @@ class YawController(object):
     def get_angle(self, radius):
 	
 		#check if radius is too small, may not happen as the route is fixed
-		if (math.fabs(radius) < 0.00005):
+		if (math.fabs(radius) < 0.00001):
 			return 0.  # atan is infinity for zero, to avoid division by zero
 		angle = atan(self.wheel_base / radius) * self.steer_ratio
 		return max(self.min_angle, min(self.max_angle, angle))
