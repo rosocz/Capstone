@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import rospy
+from scipy.spatial import KDTree  #kp - for helping in closest waypoint computation
 from std_msgs.msg import Int32
 from geometry_msgs.msg import PoseStamped, Pose
 from styx_msgs.msg import TrafficLightArray, TrafficLight
@@ -21,6 +22,8 @@ class TLDetector(object):
         self.waypoints = None
         self.camera_image = None
         self.lights = []
+        self.waypoints_2d = None
+        self.waypoint_tree = None
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -55,7 +58,11 @@ class TLDetector(object):
         self.pose = msg
 
     def waypoints_cb(self, waypoints):
+        rospy.loginfo ("wpt_cb: invoked")
         self.waypoints = waypoints
+        if not self.waypoints_2d:  #not initialized yet
+            self.waypoints_2d = [ [wpt.pose.pose.position.x, wpt.pose.pose.position.y] for wpt in waypoints.waypoints]
+            self.waypoint_tree = KDTree (self.waypoints_2d)
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
@@ -68,17 +75,20 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
+        if (self.waypoint_tree == None):
+            return
+            
         self.has_image = True
         self.camera_image = msg
         light_wp, state = self.process_traffic_lights()
-		#rospy.loginfo ("image_cb: light_wp {0} \n state {1]".format (light_wp, state)	
-
-        '''
+        rospy.loginfo ("image_cb: light_wp {0} \n state {1}".format (light_wp, state))
+        
+        """
         Publish upcoming red lights at camera frequency.
         Each predicted state has to occur `STATE_COUNT_THRESHOLD` number
         of times till we start using it. Otherwise the previous stable state is
         used.
-        '''
+        """
         if self.state != state:
             self.state_count = 0
             self.state = state
@@ -102,8 +112,8 @@ class TLDetector(object):
 
         """
         #TODO implement
-		closest_idx = self.waypoint_tree.query([x, y], 1)[1]
-		rospy.logmsg("tl_gcwp: closet__idx {}".format(closet__idx)
+        closest_idx = self.waypoint_tree.query([x, y], 1)[1]
+        # rospy.loginfo("tl_gcwp: x {};  y {} closest_idx {}".format(x, y, closest_idx))
         return (closest_idx)
 
     def get_light_state(self, light):
@@ -117,7 +127,7 @@ class TLDetector(object):
 
         """
         # 	for testing just use simulator light state
-		retun light.state
+        return light.state
 		
 		#if(not self.has_image):
         #   self.prev_light_loc = None
@@ -137,33 +147,32 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        closet_light = None
-		line_wp_idx = None
+        closest_light = None
+        line_wp_idx = None
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
-        if(self.pose):
+        if self.pose and self.waypoint_tree:
             car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
 
 			#TODO find the closest visible traffic light (if one exists)
-			diff = len(self.waypoints.waypoints)
-			for i, light in enumerate(self.lights):
-				# get the stop light line  way point index
-				line = op_line_positions[i]
-				temp_wp_idx = self.get_closest_waypoint (line[0], line[1])
-				d = temp_wp_idx - car_wp_idx
-				
-				if (d >= 0) and (d < diff):
-					diff = d
-					closet_light = light
-					line_wp_idx = temp_wp_idx
-		
-		if (closet_light):
-			state = self.get_light_state (closet_light)
+            diff = len(self.waypoints.waypoints)
+            for i, light in enumerate(self.lights):
+                # get the stop light line  way point index
+                line = stop_line_positions[i]
+                temp_wp_idx = self.get_closest_waypoint (line[0], line[1])
+                d = temp_wp_idx - car_wp_idx
+                if (d >= 0) and (d < diff):
+                    diff = d
+                    closest_light = light
+                    line_wp_idx = temp_wp_idx
+
+		if (closest_light):
+			state = self.get_light_state (closest_light)
 			return (line_wp_idx, state)
-		esle:
-			rospy.loginfo ("ptf: unknown state of traffic light")
-			self.waypoints = None # check on this
+		else:
+			#rospy.loginfo ("ptf: unknown state of traffic light")
+			#self.waypoints = None # check on this
 			return -1, TrafficLight.UNKNOWN
 		
 
