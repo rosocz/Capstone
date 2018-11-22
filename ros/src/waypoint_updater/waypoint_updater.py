@@ -23,8 +23,8 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 100 # Number of waypoints we will publish. You can change this number
-MAX_DECEL = 0.5
+LOOKAHEAD_WPS = 50 #100 # Number of waypoints we will publish. You can change this number
+MAX_DECEL = 2. #0.5
 
 
 class WaypointUpdater(object):
@@ -48,9 +48,9 @@ class WaypointUpdater(object):
         #rospy.spin()
         
     def loop(self):
-        rate = rospy.Rate(50)  # as per classes & Q&A session [30 - 50] range
+        rate = rospy.Rate(25)  # as per classes & Q&A session [30 - 50] range
         while not rospy.is_shutdown():
-            if self.pose and self.base_waypoints and self.waypoint_tree :
+            if self.pose and self.waypoint_tree :
                 self.publish_waypoints()
             rate.sleep()
             
@@ -85,16 +85,18 @@ class WaypointUpdater(object):
         if self.stopline_wp_idx == -1 or self.stopline_wp_idx >= farthest_idx:
             lane.waypoints = base_waypoints
         else:
+            rospy.loginfo("dec invoked: stop idx {}; farthest_idx {}".format(self.stopline_wp_idx, farthest_idx))
             lane.waypoints = self.decelerate_waypoints (base_waypoints, closest_idx)
         return (lane)
     
     def decelerate_waypoints (self, waypoints, closest_idx):
         temp = []
-        
+
+        stop_idx = max (self.stopline_wp_idx - closest_idx - 2,  0)  #  -2 or -3  Take this loop invariant out of the loop
         for i, wp in enumerate (waypoints):
             p = Waypoint()
             p.pose = wp.pose
-            stop_idx = max (self.stopline_wp_idx - closest_idx - 2,  0)  #  -2 or -3
+            #stop_idx = max (self.stopline_wp_idx - closest_idx - 2,  0)  #  -2 or -3  Take this loop invariant out of the loop
             dist = self.distance (waypoints, i, stop_idx)
             vel = math.sqrt(2 * MAX_DECEL * dist)   # sqrt or   [0 - 1] scale multiplier
             if vel < 1.:
@@ -104,7 +106,6 @@ class WaypointUpdater(object):
         return (temp)
         
         
-
     def pose_cb(self, msg):
         # TODO: Implement
         self.pose = msg
