@@ -4,6 +4,7 @@ import pandas as pd
 import random
 import cv2
 import csv
+import math
 import glob
 from sklearn import model_selection
 from skimage.transform import rescale
@@ -17,12 +18,12 @@ from keras.utils.np_utils import to_categorical
 from keras.callbacks import ModelCheckpoint
 
 ROOT_PATH = './'
-BATCH_SIZE = 4
-EPOCHS = 60
+BATCH_SIZE = 64
+EPOCHS = 100
 NUM_CLASSES = 4
 
-IMAGE_HEIGHT = 124
-IMAGE_WIDTH = 64
+IMAGE_HEIGHT = 256
+IMAGE_WIDTH = 128
 IMAGE_CHANNEL = 3
 
 AUGMENT_INDEX = 6
@@ -130,12 +131,10 @@ def augment(image):
 def normalize_canvas_size(image):
     normalized_canvas = np.ndarray((IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL), dtype=np.uint8)
     if (image.shape[0] > IMAGE_HEIGHT):
-        coeff = image.shape[0] / IMAGE_HEIGHT
-        image = rescale(image, 1.0 / coeff, mode='constant')
+        image = rescale(image, 1.0 / math.ceil(float(image.shape[0]) / float(IMAGE_HEIGHT)), mode='constant', multichannel='None', anti_aliasing=True)
 
     if (image.shape[1] > IMAGE_WIDTH):
-        coeff = image.shape[1] / IMAGE_WIDTH
-        image = rescale(image, 1.0 / coeff, mode='constant')
+        image = rescale(image, 1.0 / math.ceil(float(image.shape[1]) / float(IMAGE_WIDTH)), mode='constant', multichannel='None', anti_aliasing=True)
 
     h, w = image.shape[:2]
     normalized_canvas[:h, :w] = image
@@ -180,21 +179,12 @@ def get_model():
     model = Sequential()
 
     input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL)
-    model.add(Conv2D(72, 18, strides=2, input_shape=input_shape,padding='same', activation='relu'))
+    model.add(Conv2D(32, 16, strides=2, input_shape=input_shape,padding='same', activation='relu'))
     model.add(Lambda(lambda x: x/127.5 - 1.))
-    model.add(Conv2D(32, 16, strides=2, padding="same", activation='relu'))
+    model.add(Conv2D(32, 8, strides=2, padding="same", activation='relu'))
     model.add(MaxPooling2D(2, 2))
-    model.add(Conv2D(16, 16, strides=2, padding="same", activation='relu'))
+    model.add(Conv2D(16, 8, strides=2, padding="same", activation='relu'))
     model.add(MaxPooling2D(2, 2))
-#     model.add(Conv2D(16, 8, strides=2, padding="same", activation='relu'))
-#     model.add(MaxPooling2D(2, 2))
-#     model.add(Conv2D(32, 4, strides=2, padding="same", activation='relu'))
-#     model.add(MaxPooling2D(2, 2))
-#     model.add(Conv2D(32, 4, strides=2, padding="same", activation='relu'))
-#     model.add(MaxPooling2D(2, 2))
-#     model.add(Conv2D(32, 2, strides=1, padding="same", activation='relu'))
-#     model.add(MaxPooling2D(2, 2))
-#     model.add(Conv2D(64, 5, strides=(2, 2), padding="same", activation='relu'))
     model.add(Flatten())
     model.add(Dropout(.35))
     model.add(Dense(128, activation='relu'))
