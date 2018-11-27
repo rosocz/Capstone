@@ -10,11 +10,8 @@ import tensorflow as tf
 from keras.models import load_model
 from keras import backend as K
 
-IMAGE_HEIGHT = 256
-IMAGE_WIDTH = 128
-
-IMG_H = 256 #600   # image height in pixels  updated for Jan's model
-IMG_W = 128 #800  # image width in pixels
+IMG_H = 600   # image height in pixels
+IMG_W = 800  # image width in pixels
 IMG_C = 3     # num of channels
 
 class TLClassifier(object):
@@ -31,11 +28,10 @@ class TLClassifier(object):
         #rospy.loginfo ("configuration {}".format (self.configuration))		
         #select & load appropriate model based environment configuration
         if (self.configuration ['is_site']):
-            self.model_dir_path = './models/carla_tl_classify.h5'
+            self.model_dir_path = './models/site_model.h5'
         else:
-            # self.model_dir_path = './models/sim_tl_classify.h5'
-            self.model_dir_path = './models/tl_classifier.h5'
-        
+            self.model_dir_path = './models/sim_model.h5'
+   
         rospy.loginfo ("model directory path: {} ".format(self.model_dir_path))
 		
         #load the model
@@ -72,8 +68,7 @@ class TLClassifier(object):
                     return TrafficLight.UNKNOWN
                 
                 #resize the image as per model acceptance
-                # img = np.reshape (image,  (1, IMG_H, IMG_W, IMG_C))
-                img = np.reshape (image,  (IMG_H, IMG_W, IMG_C))  # for jan
+                img = np.reshape (image,  (1, IMG_H, IMG_W, IMG_C))
                 score_list = self.model.predict (img)
             
                 #check score_list is empty
