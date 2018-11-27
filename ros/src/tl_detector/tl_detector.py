@@ -155,6 +155,8 @@ class TLDetector(object):
         """
         closest_light = None
         line_wp_idx = None
+       
+       
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
@@ -173,13 +175,13 @@ class TLDetector(object):
                     closest_light = light
                     line_wp_idx = temp_wp_idx
 
-		if (closest_light):
-			state = self.get_light_state (closest_light)
-			return (line_wp_idx, state)
-		else:
-			#rospy.loginfo ("ptf: unknown state of traffic light")
-			#self.waypoints = None # check on this
-			return -1, TrafficLight.UNKNOWN
+        if (closest_light):
+            state = self.get_light_state (closest_light)
+            return (line_wp_idx, state)
+        else:
+            #rospy.loginfo ("ptf: unknown state of traffic light")
+            #self.waypoints = None # check on this
+            return -1, TrafficLight.UNKNOWN
 		
 
 if __name__ == '__main__':

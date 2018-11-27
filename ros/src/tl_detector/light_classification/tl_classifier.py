@@ -28,10 +28,10 @@ class TLClassifier(object):
         #rospy.loginfo ("configuration {}".format (self.configuration))		
         #select & load appropriate model based environment configuration
         if (self.configuration ['is_site']):
-            self.model_dir_path = './models/carla_tl_classify.h5'
+            self.model_dir_path = './models/site_model.h5'
         else:
-            self.model_dir_path = './models/sim_tl_classify.h5'
-        
+            self.model_dir_path = './models/sim_model.h5'
+   
         rospy.loginfo ("model directory path: {} ".format(self.model_dir_path))
 		
         #load the model
