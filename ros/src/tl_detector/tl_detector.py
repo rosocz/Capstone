@@ -48,6 +48,7 @@ class TLDetector(object):
         self.listener = tf.TransformListener()
 
         self.last_state = TrafficLight.UNKNOWN
+        self.last_light_state = None
         self.last_wp = -1
         self.state_count = 0
         self.has_image = False
@@ -140,7 +141,9 @@ class TLDetector(object):
         # check whether tl_classifier for simulator is working	
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
         result = self.light_classifier.get_classification (cv_image)
-        rospy.loginfo("image classification {}".format(result))
+        if (self.last_light_state != result):
+            rospy.loginfo("image classification {}".format(result))
+            self.last_light_state = result
         return result
 			
 
