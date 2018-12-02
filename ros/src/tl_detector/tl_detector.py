@@ -14,7 +14,8 @@ import cv2
 import yaml
 
 STATE_COUNT_THRESHOLD = 3
-CAMERA_IMG_PROCESS_RATE = 20  # times /sec
+CAMERA_IMG_PROCESS_RATE = 0.20  #  20 milliseconds  gap between successive camera image processing
+WAYPOINT_DIFFERENCE = 300  # Do not bother to process the camera image if next light is > 300 waypoints ahead.
 
 class TLDetector(object):
     def __init__(self):
@@ -87,7 +88,7 @@ class TLDetector(object):
         
         time_elapsed = timer() - self.last_img_processed 
         #Do not process the camera image unless 20 milliseconds have passed from last processing
-        if (time_elapsed < 0.2):
+        if (time_elapsed < CAMERA_IMG_PROCESS_RATE):
             return;
         #rospy.loginfo ("image_cb: time_elapsed {}".format(time_elapsed))
         self.has_image = True
@@ -190,7 +191,7 @@ class TLDetector(object):
                     line_wp_idx = temp_wp_idx
 
         # do not process the camera image unless the traffic light <= 300 waypoints
-        if (closest_light) and ((line_wp_idx - car_wp_idx)  <= 300):
+        if (closest_light) and ((line_wp_idx - car_wp_idx)  <= WAYPOINT_DIFFERENCE):
             #rospy.loginfo ("tl_detector: car_wp_idx: {}, line_wp_index: {}".format(car_wp_idx, line_wp_idx))
             state = self.get_light_state (closest_light)
             return (line_wp_idx, state)
