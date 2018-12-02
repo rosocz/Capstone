@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import rospy
+from timeit import default_timer as timer 
 from scipy.spatial import KDTree  #kp - for helping in closest waypoint computation
 from std_msgs.msg import Int32
 from geometry_msgs.msg import PoseStamped, Pose
@@ -13,6 +14,7 @@ import cv2
 import yaml
 
 STATE_COUNT_THRESHOLD = 3
+CAMERA_IMG_PROCESS_RATE = 20  # times /sec
 
 class TLDetector(object):
     def __init__(self):
@@ -53,6 +55,7 @@ class TLDetector(object):
         self.state_count = 0
         self.has_image = False
         self.state = TrafficLight.UNKNOWN
+        self.last_img_processed = 0
         #self.initialized = True
         rospy.spin()
         
@@ -81,11 +84,19 @@ class TLDetector(object):
         """
         if (self.waypoint_tree == None):
             return
-            
+        
+        time_elapsed = timer() - self.last_img_processed 
+        #Do not process the camera image unless 20 milliseconds have passed from last processing
+        if (time_elapsed < 0.2):
+            return;
+        #rospy.loginfo ("image_cb: time_elapsed {}".format(time_elapsed))
         self.has_image = True
         self.camera_image = msg
-        
+
+           
+        self.last_img_processed = timer()
         light_wp, state = self.process_traffic_lights()
+        
         #rospy.loginfo ("image_cb: light_wp {0} \n state {1}".format (light_wp, state))
         
         """
@@ -166,7 +177,7 @@ class TLDetector(object):
         if self.pose and self.waypoint_tree:
             car_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
 
-			#TODO find the closest visible traffic light (if one exists)
+            #TODO find the closest visible traffic light (if one exists)
             diff = len(self.waypoints.waypoints)
             for i, light in enumerate(self.lights):
                 # get the stop light line  way point index
@@ -178,7 +189,9 @@ class TLDetector(object):
                     closest_light = light
                     line_wp_idx = temp_wp_idx
 
-        if (closest_light):
+        # do not process the camera image unless the traffic light <= 300 waypoints
+        if (closest_light) and ((line_wp_idx - car_wp_idx)  <= 300):
+            #rospy.loginfo ("tl_detector: car_wp_idx: {}, line_wp_index: {}".format(car_wp_idx, line_wp_idx))
             state = self.get_light_state (closest_light)
             return (line_wp_idx, state)
         else:
