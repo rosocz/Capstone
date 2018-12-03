@@ -2,13 +2,13 @@ This is the project repo for the final project of the Udacity Self-Driving Car N
 We are submitting this project as a team effort.  Here is the team composition.
 ## Team Name:  teamCarla
 
-|Num| Name               | Email                     | Role     |
-|:-:|:------------------:|:-------------------------:|:------- :|
-|1  |  Jan Rosicky       |  janrosicky@centrum.cz    |  Member  |
-|2  |  Komuraiah Poodari |  poodari@yahoo.com        |  Member  |
-|3  |  Rakesh Chittineni |  rakeshch.net@gmail.com   |  Member  |
-|4  |  Santosh Bhushan   |  2sbsbsb@gmail.com        |  Leader  |
 
+ | Num | Name                | Email                   | Role      |
+ |:---:|:------- -----------:|:-----------------------:|:---------:|
+ |  1  |   Jan Rosicky       |  janrosicky@centrum.cz  | Member    |
+ |  2  |   Komuraiah Poodari |  poodari@yahoo.com      | Member    |
+ |  3  |   Rakesh Chittineni |  rakeshch.net@gmail.com | Member    |
+ |  4  |   Santosh Bhushan   |  2sbsbsb@gmail.com      | Leader    | 
 
 ## System Architecture
 This project is based on the architecture framework provided by Udacity as per the following system architecture diagram.
