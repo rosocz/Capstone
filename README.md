@@ -24,6 +24,29 @@ This project is based on the architecture framework provided by Udacity as per t
 
 source: Udacity Project Lesson section 4.
 
+### Perception Subsystem
+We implemented traffic light detection by processing the camera image on need basis.  For example processig image with minimum time gap (few milliseconds) and only when the traffic light ahead is few hundred waypoints ahead of current car position.
+The objective is to optimize the processing on the platform.
+
+We used closest distance measure between car waypoint and traffic light waypoint to identify the closest light ahead of the car. We used a pre-trained convolutional neural network model for inferencing the traffic light classification. We used two models, one each for site inferencing and simulator inferencing.
+
+### Perception Subsystem
+Planning system has two nodes, viz., `waypoint loader` and `waypoint updater` nodes.  
+The node `waypoint loader` loads the complete set of traffic waypoints for the entire track.
+The node `waypoint updates` updates next set of waypoints ahead of the car.  We used only 50 look ahead waypoints to optimize processing.
+We implemented to have the car stopped 2 waypoints ahead of the traffic light waypoint ahead, the signal warrants a stop.
+
+### Control Susbsytem
+This module contains the following nodes.
+The node, `DBW (Drive By Wire)` computes control inputs for actuators, `throttle`, `brake` and `steering angle` based on the desired velocities.
+We implemented the main control logic in `twist_controller.py` using low pass filter, yaw_controller and PID cotroller given in the project. We had to play with various parameters.
+
+
+### Reflection
+We had to spend good amount of bandwidth on making environment setup stable, as there are quite a few options and the project needs high-end platform with GPU.  We look forward to running our implementation on real car, **Carla** and get feedback.
+
+The rest of the sections are unmodified sections came with the project baseline.
+
 Please use **one** of the two installation options, either native **or** docker installation. As a team some of us used native installation, some of us used docker based installation.
 
 
