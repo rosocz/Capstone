@@ -1,6 +1,54 @@
-This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car. For more information about the project, see the project introduction [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
+This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: **Programming a Real Self-Driving Car**. For more information about the project, see the project introduction [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
+We are submitting this project as a team effort.  Here is the team composition.
 
-Please use **one** of the two installation options, either native **or** docker installation.
+[//]: # (Image References)
+[image1]: ./architecture.jpg
+
+
+
+## Team Name:  teamCarla
+
+ 
+ | Num  | Name              | Email                  | Role   |
+ |------|-------------------|------------------------|--------|
+ | 1    | Jan Rosicky       | janrosicky@centrum.cz  | Member |
+ | 2    | Komuraiah Poodari | poodari@yahoo.com      | Member |
+ | 3    | Rakesh Chittineni | rakeshch.net@gmail.com | Member |
+ | 4    | Santosh Bhushan   | 2sbsbsb@gmail.com      | Leader |
+ 
+ 
+## System Architecture
+This project is based on the architecture framework provided by Udacity as per the following system architecture diagram.
+
+![alt text][image1]
+
+Source: Udacity Project Lesson section 4.
+
+### Perception Subsystem
+We implemented traffic light detection by processing the camera image on need basis.  For example, processing image with minimum time gap (few milliseconds) and only when the traffic light ahead is few hundred waypoints ahead of current car position.
+The objective is to optimize the processing on the platform.
+
+We used closest distance measure between car waypoint and traffic light waypoint to identify the closest light ahead of the car. We used a pre-trained convolutional neural network model for inferencing the traffic light classification. We used two models, one each for site inferencing and simulator inferencing.
+
+### Planning Subsystem
+Planning subsystem has two nodes, viz., `waypoint loader` and `waypoint updater` nodes.  
+The node `waypoint loader` loads the complete set of traffic waypoints for the entire track.
+The node `waypoint updates` updates next set of waypoints ahead of the car.  We used only 50 look ahead waypoints to optimize processing.
+We implemented to have the car stopped 2 waypoints ahead of the traffic light waypoint ahead, the signal warrants a stop.
+
+### Control Subsystem
+This module contains the following nodes.
+The node, `DBW (Drive By Wire)` computes control inputs for actuators, `throttle`, `brake` and `steering angle` based on the desired velocities.
+We implemented the main control logic in `twist_controller.py` using low pass filter, yaw_controller and PID controller given in the project. We had to play with various parameters.
+
+
+### Reflection
+We had to spend good amount of bandwidth on making environment setup stable, as there are quite a few options and the project needs high-end platform with GPU.  We look forward to running our implementation on real car, **Carla** and get feedback.
+
+The rest of the sections are unmodified sections came with the project baseline.
+
+Please use **one** of the two installation options, either native **or** docker installation. As a team some of us used native installation, some of us used docker based installation.
+
 
 ### Native Installation
 
